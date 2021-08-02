@@ -1,0 +1,31 @@
+
+body {
+  color: white;
+  background-color: #001122;
+  font: 12pt calibri;
+}
+
+img {
+  margin: 0.3em;
+}
+
+fieldset {
+  margin: 5px;
+  margin-top: 0.1em;
+  border: 1px solid lemonchiffon;
+  padding: 2em;
+}
+
+legend {
+  border: 1px solid lemonchiffon;
+  padding: 0.3em;
+}
+
+fieldset, legend {
+  border-radius: 0.2em 0.3em 0.2em 0.3em;
+}
+
+a {
+  margin-top: -9px;
+  color: azure;
+}
