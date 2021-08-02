@@ -1,0 +1,227 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Luma</title>
+  <style>
+  label {
+    margin-left: 10px;
+    margin-right: 4px;
+  }
+  </style>
+</head>
+
+<body onload="App.run()">
+
+<div>
+<canvas id="idCanvas"
+ width="256" height="256">
+</canvas>
+</div>
+
+<div>
+<fieldset><legend>Commands</legend>
+<div>
+<button onclick="App.render()">Render</button>
+<button onclick="App.clearCanvas()">Clear</button>
+</div>
+</fieldset>
+</div>
+
+<div>
+<fieldset><legend>Environment</legend>
+<div>
+<label>Ambient:</label><input type="color" id="idAmbientSceneColor" />
+<label>Background:</label><input type="color" id="idBackgroundColor" />
+<label>Haze:</label><input type="text" id="idHaze" value="0" />
+</div>
+</fieldset>
+</div>
+
+<section name="Materials">
+
+<div>
+<fieldset><legend>Ambient</legend>
+<div>
+<input type="radio" name="ambient" checked id="idAmbientRadio"/>
+<input type="color" id="idAmbientColor"/><br/>
+<input type="radio" name="ambient"/>
+<img id="idAmbientTex" src="art/lg-01.png"/>
+</div>
+</fieldset>
+</div>
+
+<div>
+<fieldset><legend>Diffuse</legend>
+<div>
+<input type="radio" name="diffuse" id="idDiffuseRadio"/>
+<input type="color" id="idDiffuseColor"/><br/>
+<input type="radio" name="diffuse" checked />
+<img id="idDiffuseTex" src="art/lg-02.png"/>
+</div>
+</fieldset>
+</div>
+
+<div>
+<fieldset><legend>Specular</legend>
+<div>
+<input type="radio" name="specular" checked id="idSpecularRadio"/>
+<input type="color" id="idSpecularColor"/><br/>
+<input type="radio" name="specular"/>
+<img id="idSpecularTex" src="art/med-02.png"/>
+</div>
+</fieldset>
+</div>
+
+<div>
+<fieldset><legend>Transmissive</legend>
+<div>
+<input type="radio" name="transmissive" checked id="idTransmissiveRadio"/>
+<input type="color" id="idTransmissiveColor"/><br/>
+<input type="radio" name="transmissive"/>
+<img id="idTransmissiveTex" src="art/med-04.png"/>
+</div>
+</fieldset>
+</div>
+
+<div>
+<fieldset><legend>Shiny Dot</legend>
+<div>
+<label>Color:</label><input type="color" id="idShineColor"/><br/>
+<label>Shine:</label><input type="text" id="idShine" value="100" />
+</div>
+</fieldset>
+</div>
+
+</section>
+
+<library>
+
+<script src="api/vec.js"></script>
+<script src="api/color.js"></script>
+<script src="api/scene.js"></script>
+<script src="api/material.js"></script>
+<script src="api/ray.js"></script>
+<script src="api/light.js"></script>
+<script src="api/tracer.js"></script>
+
+</library>
+<application>
+
+<script name="UI">
+const UI = {
+  readAmbient: function() {
+    if (idAmbientRadio.checked) {
+      Material.tm_amb = null
+      Material.amb = Color.htmlToVec(idAmbientColor.value)
+    }
+    else {
+      const w = idCanvas.width
+      const h = idCanvas.height
+      const g = idCanvas.getContext('2d')
+      g.drawImage(idAmbientTex,0,0)
+      const img = g.getImageData(0,0,w,h)
+      Material.tm_amb = Material.texCreate(img,[1,0,0],[0,1,0])
+    }
+  },
+  readDiffuse: function() {
+    if (idDiffuseRadio.checked) {
+      Material.tm_diff = null
+      Material.diff = Color.htmlToVec(idDiffuseColor.value)
+    }
+    else {
+      const w = idCanvas.width
+      const h = idCanvas.height
+      const g = idCanvas.getContext('2d')
+      g.drawImage(idDiffuseTex,0,0)
+      const img = g.getImageData(0,0,w,h)
+      Material.tm_diff = Material.texCreate(img,[1,0,0],[0,1,0])
+    }
+  },
+  readSpecular: function() {
+    if (idSpecularRadio.checked) {
+      Material.tm_spec = null
+      Material.spec = Color.htmlToVec(idSpecularColor.value)
+    }
+    else {
+      const w = idCanvas.width
+      const h = idCanvas.height
+      const g = idCanvas.getContext('2d')
+      g.drawImage(idSpecularTex,0,0)
+      const img = g.getImageData(0,0,w,h)
+      Material.tm_spec = Material.texCreate(img,[1,0,0],[0,1,0])
+    }
+  },
+  readTransmissive: function() {
+    if (idTransmissiveRadio.checked) {
+      Material.tm_trans = null
+      Material.trans = Color.htmlToVec(idTransmissiveColor.value)
+    }
+    else {
+      const w = idCanvas.width
+      const h = idCanvas.height
+      const g = idCanvas.getContext('2d')
+      g.drawImage(idTransmissiveTex,0,0)
+      const img = g.getImageData(0,0,w,h)
+      Material.tm_trans = Material.texCreate(img,[1,0,0],[0,1,0])
+    }
+  },
+  readShine: function() {
+    Material.cshine = Color.htmlToVec(idShineColor.value)
+    Material.shine = parseFloat(idShine.value)
+    Material.shine = Vec.mid(0,Material.shine,1000)
+    idShine.value = Material.shine
+  },
+  readMaterials: function() {
+    UI.readAmbient()
+    UI.readDiffuse()
+    UI.readSpecular()
+    UI.readTransmissive()
+    UI.readShine()
+  },
+  readScene: function() {
+    Scene.ambient = Color.htmlToVec(idAmbientSceneColor.value)
+    Scene.background = Color.htmlToVec(idBackgroundColor.value)
+    Scene.haze = parseFloat(idHaze.value)
+    Scene.haze = Vec.mid(0,Scene.haze,1)
+    idHaze.value = Scene.haze
+  }
+}
+</script>
+
+<script name="App">
+const App = {
+  run: function() {
+    App.clearCanvas()
+    App.createLights()
+  },
+  fillCanvas: function(color) {
+    const w = idCanvas.width
+    const h = idCanvas.height
+    const g = idCanvas.getContext('2d')
+    g.fillColor = color
+    g.fillRect(0,0,w,h)
+  },
+  clearCanvas: function() {
+    App.fillCanvas('black')
+  },
+  createLights: function() {
+    let light = Light.create(L_POINT,[.5,.5,.5],L_RSQUARE)
+    Light.initPoint(light,[-.2,-.15,-.45])
+    light = Light.create(L_SPOT,[1,.1,.1],L_R)
+    let x = 0.01
+    let y = 0.015
+    let z = -0.72
+    Light.initSpot(light,[x,y,z],[-x,-y,-z],5,25)
+  },
+  render: function() {
+    UI.readMaterials()
+    UI.readScene()
+    Tracer.render(idCanvas)
+  }
+}
+</script>
+
+</application>
+</body>
+</html>
