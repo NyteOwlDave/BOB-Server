@@ -8,13 +8,15 @@
 </head>
 <body>
     <h1>File System</h1>
-    <section>
+    <section name="Input Controls">
         <div>
-            <select>
+            Enter the filename extension to look for.
+        </div>
+        <div>
+            <select id="idSelect">
                 <option>map</option>
                 <option>img</option>
                 <option>studio</option>
-                <option>scene</option>
                 <option>bc</option>
                 <option>bo</option>
                 <option>bs</option>
@@ -22,7 +24,136 @@
                 <option>bob</option>
                 <option>(other)</option>
             </select>
+            <button onclick="onClickSelect()">Select</button><br>
+            <input type="text" id="idExt" value="*" /><br>
+            <label id="idExtMemo"></label><br>
+            <button onclick="onClickOK()">OK</button>
         </div>
+    </section>
+    <section name="Output Controls">
+        <div id="idOutput"></div>
+    </section>
+    <section name="Script">
+        <script>
+            const g_ext_descriptions = {
+                "md" : "Markdown",
+                "map" : "Background color map",
+                "img" : "Image",
+                "studio" : "Studio definition",
+                "bc" : "Colorset definition",
+                "bo" : "Object definition",
+                "bs" : "Surface definition",
+                "bob" : "Scene definition",
+                "bbs" : "Precompiled scene",
+                "*" : "All files"
+            };
+            function show_ext_description()
+            {
+                const ext = idExt.value.trim();
+                let memo = g_ext_descriptions[ext];
+                if (!memo)
+                {
+                    memo = "Unknown";
+                }
+                idExtMemo.innerText = memo;
+            }
+            function onClickSelect(e)
+            {
+                var s = idSelect.value;
+                if (s=="(other)") s = "";
+                idExt.value = s;
+                show_ext_description();
+            }
+            function onClickOK()
+            {
+                var s = idExt.value.trim();
+                if (s=="") 
+                {
+                    s = "*";
+                    idExt.value = s;
+                }
+                scan_files(s);
+            }
+            function scan_files(ext)
+            {
+                const url = "../server/rt/bobls.php?ext=" + ext;
+                fetch(url)
+                .then(resp=>resp.text())
+                .then(doc=>{
+                    show_files(doc);
+                });
+            }
+            function show_files(doc)
+            {
+                doc = doc.trim().split("\n");
+                doc = doc.map(s=>s.trim()).filter(s=>s.length);
+                const folders = {};
+                const count = doc.length;
+                for (var i=0; i<count; i++)
+                {
+                    var line = doc[i];
+                    if (line[0]=='[')
+                    {
+                        var name = line.substr(1, line.length-2);
+                        if (typeof folders[name] == "undefined")
+                            folders[name] = [];
+                        i++;
+                        while (i < count)
+                        {
+                            line = doc[i];
+                            if (line[0] == '[')
+                            {
+                                i--;
+                                break;
+                            }
+                            folders[name].push(line);
+                            i++;
+                        }
+                    }
+                }
+                // doc = JSON.stringify(folders, null, 2);
+                // doc = `<pre>${doc}</pre>`;
+                // idOutput.innerHTML = doc;
+                add_frames(folders);
+            }
+            function clear_output()
+            {
+                idOutput.innerHTML = "";
+            }
+            function add_frame(name, files)
+            {
+                // console.log(name, files, files.length);
+                if (files.length < 1) return;
+                const fs = document.createElement("fieldset");
+                const leg = document.createElement("legend");
+                fs.appendChild(leg);
+                leg.innerText = name;
+                for (let file of files)
+                {
+                    let div = document.createElement("div");
+                    div.innerText = file;
+                    fs.appendChild(div);
+                }
+                idOutput.appendChild(fs);
+            }
+            function add_frames(frames)
+            {
+                clear_output();
+                // console.log(frames);
+                for (let name in frames)
+                {
+                    add_frame(name, frames[name]);
+                }
+            }
+            function main()
+            {
+                idExt.addEventListener("input", show_ext_description);
+                show_ext_description();
+            }
+            (function () {
+                window.addEventListener("load", main);
+            })();
+        </script>
     </section>
 </body>
 </html>
